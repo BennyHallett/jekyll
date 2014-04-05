@@ -216,8 +216,8 @@ module Jekyll
     def render
       relative_permalinks_deprecation_method
 
-      collections.each do |label, collection|
-        collection.docs.each do |document|
+      to_render.each do |label|
+        collections[label].docs.each do |document|
           document.output = Jekyll::Renderer.new(self, document).run
         end
       end
@@ -297,7 +297,8 @@ module Jekyll
     #                  See Site#post_attr_hash for type info.
     def site_payload
       {"jekyll" => { "version" => Jekyll::VERSION },
-       "site"   => config.merge({
+       "site"   => Utils.deep_merge_hashes(config,
+         Utils.deep_merge_hashes(collections, {
           "time"         => time,
           "posts"        => posts.sort { |a, b| b <=> a },
           "pages"        => pages,
@@ -305,8 +306,9 @@ module Jekyll
           "html_pages"   => pages.reject { |page| !page.html? },
           "categories"   => post_attr_hash('categories'),
           "tags"         => post_attr_hash('tags'),
-          "data"         => site_data,
-          "collections"  => collections})}
+          "data"         => site_data
+        }))
+      }
     end
 
     # Filter out any files/directories that are hidden or backup files (start
